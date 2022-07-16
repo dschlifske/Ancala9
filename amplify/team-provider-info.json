@@ -14,6 +14,16 @@
     "categories": {
       "auth": {
         "ancala9cb620cfd": {}
+      },
+      "function": {
+        "ancala9cb620cfdCreateAuthChallenge": {
+          "deploymentBucketName": "amplify-amplify9102cccb38a44-staging-11021-deployment",
+          "s3Key": "amplify-builds/ancala9cb620cfdCreateAuthChallenge-33475a6e706161786149-build.zip"
+        },
+        "ancala9692f9a87": {
+          "deploymentBucketName": "amplify-amplify9102cccb38a44-staging-11021-deployment",
+          "s3Key": "amplify-builds/ancala9692f9a87-6b474b7958672b77724b-build.zip"
+        }
       }
     }
   }
