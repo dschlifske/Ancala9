@@ -5,7 +5,7 @@ export function SignInHeader() {
 
   return (
     <Heading level={3} padding={`${tokens.space.xl} ${tokens.space.xl} 0`}>
-      Sign in to your account
+      Sign in to Ancala Health
     </Heading>
   );
 }
