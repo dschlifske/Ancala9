@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
-//import './App.css';
+import './App.css';
 import { API } from 'aws-amplify';
-import { withAuthenticator } from '@aws-amplify/ui-react';
+import { withAuthenticator, AmplifySignOut } from '@aws-amplify/ui-react';
 import { listNotes } from './graphql/queries';
 import { createNote as createNoteMutation, deleteNote as deleteNoteMutation } from './graphql/mutations';
 import { Storage } from 'aws-amplify';
-import { Header } from "./Header";
-import { Footer } from "./Footer";
-import { SignInHeader } from "./SignInHeader";
-import { SignInFooter } from "./SignInFooter";
-import "./styles.css"
+
 
 const initialFormState = { name: '', description: '' }
 
@@ -45,18 +41,18 @@ function App({ isPassedToWithAuthenticator, signOut, user }) {
     setFormData(initialFormState);
   }
 
+  async function deleteNote({ id }) {
+    const newNotesArray = notes.filter(note => note.id !== id);
+    setNotes(newNotesArray);
+    await API.graphql({ query: deleteNoteMutation, variables: { input: { id } }});
+  }
+
   async function onChange(e) {
     if (!e.target.files[0]) return
     const file = e.target.files[0];
     setFormData({ ...formData, image: file.name });
     await Storage.put(file.name, file);
     fetchNotes();
-  }
-
-  async function deleteNote({ id }) {
-    const newNotesArray = notes.filter(note => note.id !== id);
-    setNotes(newNotesArray);
-    await API.graphql({ query: deleteNoteMutation, variables: { input: { id } }});
   }
 
   return (
@@ -80,30 +76,20 @@ function App({ isPassedToWithAuthenticator, signOut, user }) {
       <div style={{marginBottom: 30}}>
         {
           notes.map(note => (
-            <div key={note.id || note.name}>
-            <h2>{note.name}</h2>
-            <p>{note.description}</p>
-            <button onClick={() => deleteNote(note)}>Delete note</button>
-            {
-              note.image && <img src={note.image} style={{width: 400}} />
-            }
-          </div>
-          ))
+          <div key={note.id || note.name}>
+          <h2>{note.name}</h2>
+          <p>{note.description}</p>
+          <button onClick={() => deleteNote(note)}>Delete note</button>
+          {
+            note.image && <img src={note.image} style={{width: 400}} />
         }
+      </div>
+  ))
+}
       </div>
       <button onClick={signOut}>Sign out</button>
     </div>
   );
 }
 
-//export default withAuthenticator(App);
-export default withAuthenticator(App, {
-  components: {
-    Header,
-    SignIn: {
-      Header: SignInHeader,
-      Footer: SignInFooter
-    },
-    Footer
-  }
-});
+export default withAuthenticator(App);
