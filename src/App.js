@@ -26,8 +26,10 @@ function App({ isPassedToWithAuthenticator, signOut, user }) {
     const notesFromAPI = apiData.data.listNotes.items;
     await Promise.all(notesFromAPI.map(async note => {
       if (note.image) {
+        Storage.configure({ level: 'private' });
         const image = await Storage.get(note.image);
-        note.image = image;
+        {/*change the image to make it visible -- shouldnt matter for dicom images anyway*/}
+        {/*note.image = image;*/}
       }
       return note;
     }))
@@ -38,11 +40,17 @@ function App({ isPassedToWithAuthenticator, signOut, user }) {
     if (!formData.name || !formData.description) return;
     await API.graphql({ query: createNoteMutation, variables: { input: formData } });
     if (formData.image) {
+      Storage.configure({ level: 'private' });
       const image = await Storage.get(formData.image);
-      formData.image = image;
+      console.log("before: ", formData.image);
+      {/*change the image to make it visible -- shouldnt matter for dicom images anyway*/}
+      {/*formData.image = image;*/}
+      console.log("after: ", formData.image);
     }
     setNotes([ ...notes, formData ]);
     setFormData(initialFormState);
+    console.log(notes);
+    {/*fetchNotes();*/}
   }
 
   async function deleteNote({ id }) {
@@ -51,30 +59,43 @@ function App({ isPassedToWithAuthenticator, signOut, user }) {
       _version: 1
     };
    await API.graphql({ query: deleteNoteMutation, variables: { input: deleteDetails }}); */}
+   const noteToDelete = notes.find(note => note.id === id);
+   console.log("Note to delete: ", noteToDelete.image);
+
+
+
    const newNotesArray = notes.filter(note => note.id !== id);
    setNotes(newNotesArray);
    await API.graphql({ query: deleteNoteMutation, variables: { input: { id } }});
+
+   {/*if we change the image to make it visible, we can't delete it here*/}
+   await Storage.remove(noteToDelete.image, { level: 'private' });
   }
 
   async function onChange(e) {
     if (!e.target.files[0]) return
     const file = e.target.files[0];
     setFormData({ ...formData, image: file.name });
-    await Storage.put(file.name, file);
+    {/*await Storage.put(file.name, file);*/}
+    console.log("Putting ", file.name);
+    await Storage.put(file.name, file, {
+      level: "private",
+      contentType: "file",
+    });
     fetchNotes();
   }
 
   return (
     <div className="App">
-      <h1>Ancala Health Web App</h1>
+      <h1>Ancala Health - Upload Image Studies</h1>
       <input
         onChange={e => setFormData({ ...formData, 'name': e.target.value})}
-        placeholder="Note name"
+        placeholder="Name"
         value={formData.name}
       />
       <input
         onChange={e => setFormData({ ...formData, 'description': e.target.value})}
-        placeholder="Note description"
+        placeholder="Description"
         value={formData.description}
       />
       {/*<input
