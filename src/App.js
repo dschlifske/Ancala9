@@ -72,6 +72,30 @@ function App({ isPassedToWithAuthenticator, signOut, user }) {
    await Storage.remove(noteToDelete.image, { level: 'private' });
   }
 
+  async function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename || 'download';
+    const clickHandler = () => {
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+        a.removeEventListener('click', clickHandler);
+      }, 150);
+    };
+    a.addEventListener('click', clickHandler, false);
+    a.click();
+    return a;
+  }
+
+  async function downloadNote({ id }) {
+    const noteToDownload = notes.find(note => note.id === id);
+    console.log("Note to download: ", noteToDownload.image);
+
+    const result = await Storage.get(noteToDownload.image, { download: true });
+    downloadBlob(result.Body, noteToDownload.image);
+  }
+
   async function onChange(e) {
     if (!e.target.files[0]) return
     const file = e.target.files[0];
@@ -87,7 +111,7 @@ function App({ isPassedToWithAuthenticator, signOut, user }) {
 
   return (
     <div className="App">
-      <h1>Ancala Health - Upload Image Studies</h1>
+      <h1>Ancala Health</h1>
       <input
         onChange={e => setFormData({ ...formData, 'name': e.target.value})}
         placeholder="Name"
@@ -109,17 +133,19 @@ function App({ isPassedToWithAuthenticator, signOut, user }) {
         <input type="file" directory="" webkitdirectory="" onChange={onChange} />
       </label>
       <p/>
-      <button onClick={createNote}>Create Note</button>
+      <button onClick={createNote}>Upload Image Series</button>
       <div style={{marginBottom: 30}}>
         {
           notes.map(note => (
           <div key={note.id || note.name}>
           <h2>{note.name}</h2>
           <p>{note.description}</p>
-          <button onClick={() => deleteNote(note)}>Delete note</button>
+          <button onClick={() => deleteNote(note)}>Delete</button>
           {
             note.image && <img src={note.image} style={{width: 400}} />
           }
+          <button onClick={() => downloadNote(note)}>Download</button>
+
       </div>
   ))
 }
