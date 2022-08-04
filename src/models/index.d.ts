@@ -12,7 +12,8 @@ export declare class Note {
   readonly id: string;
   readonly name: string;
   readonly description?: string | null;
-  readonly image?: string | null;
+  readonly image?: (string | null)[] | null;
+  readonly owner?: string | null;
   readonly createdAt?: string | null;
   readonly updatedAt?: string | null;
   constructor(init: ModelInit<Note, NoteMetaData>);

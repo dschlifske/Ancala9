@@ -38,6 +38,7 @@ function App({ isPassedToWithAuthenticator, signOut, user }) {
 
   async function createNote() {
     if (!formData.name || !formData.description) return;
+    console.log(formData.image);
     await API.graphql({ query: createNoteMutation, variables: { input: formData } });
     if (formData.image) {
       Storage.configure({ level: 'private' });
@@ -69,7 +70,7 @@ function App({ isPassedToWithAuthenticator, signOut, user }) {
    await API.graphql({ query: deleteNoteMutation, variables: { input: { id } }});
 
    {/*if we change the image to make it visible, we can't delete it here*/}
-   await Storage.remove(noteToDelete.image, { level: 'private' });
+   await Storage.remove(noteToDelete.image[0], { level: 'private' });
   }
 
   async function downloadBlob(blob, filename) {
@@ -90,18 +91,29 @@ function App({ isPassedToWithAuthenticator, signOut, user }) {
 
   async function downloadNote({ id }) {
     const noteToDownload = notes.find(note => note.id === id);
-    console.log("Note to download: ", noteToDownload.image);
+    console.log("Note to download: ", noteToDownload);
+    console.log("Image to dowload: ", noteToDownload.image[0]);
 
-    const result = await Storage.get(noteToDownload.image, { download: true });
-    downloadBlob(result.Body, noteToDownload.image);
+    const result = await Storage.get(noteToDownload.image[0], { download: true });
+    downloadBlob(result.Body, noteToDownload.image[0]);
   }
 
   async function onChange(e) {
-    if (!e.target.files[0]) return
+    if (!e.target.files[0]) return  
     const file = e.target.files[0];
-    setFormData({ ...formData, image: file.name });
+    console.log("Files: ", e.target.files);
+    console.log("Number of files: ", e.target.files.length);
+    //const fileArray = [ e.target.files[0], e.target.files[1] ];
+    let fileArray = [];
+    for (var i = 0; i < e.target.files.length; i++) {
+      console.log("adding ", e.target.files[i].name, " to array");
+      fileArray.push(e.target.files[i].name);
+    }
+    console.log("Array: ", fileArray);
+    setFormData({ ...formData, image: fileArray });
     {/*await Storage.put(file.name, file);*/}
     console.log("Putting ", file.name);
+
     await Storage.put(file.name, file, {
       level: "private",
       contentType: "file",
