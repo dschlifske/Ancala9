@@ -19,7 +19,6 @@ import Home from '../pages';
 import NavBar from '../NavBar/NavBar'
 import { CgMenuRound } from 'react-icons/cg'
 
-
 const Studies = (user) => {
  
     const initialFormState = { name: '', description: '' }

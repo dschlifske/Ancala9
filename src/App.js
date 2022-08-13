@@ -17,12 +17,22 @@ import { Footer } from "./Footer";
 import { SignInHeader } from "./SignInHeader";
 import { SignInFooter } from "./SignInFooter";
 import awsExports from './aws-exports';
+import { Hub } from 'aws-amplify';
 Amplify.configure(awsExports);
 
 
 
 
 function App({ isPassedToWithAuthenticator, signOut, user }) {
+
+  Hub.listen('auth', (data) => {
+    switch (data.payload.event) {
+      case 'signOut':
+          console.log('user signed out');
+          window.location.replace('https://ancalahealth.com');
+          break;
+    }
+  });
 
   return (
     <div className="App">
