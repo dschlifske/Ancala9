@@ -7,8 +7,8 @@ export function Header() {
     <Image
       alt="logo"
       //src="https://tailwindui.com/img/logos/workflow-logo-indigo-600-mark-gray-800-text.svg"
-      src="ancala health logo.svg"
-      padding={tokens.space.medium}
+      src="ancalaHealthLogo2.png"
+      padding={tokens.space.xxxl}
     />
   );
 }

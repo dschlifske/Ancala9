@@ -7,9 +7,7 @@ import classes from './NavBar.module.css';
 import { withAuthenticator } from "@aws-amplify/ui-react";
 
 const NavLinks = (props) => {
-    
-
-    
+       
     return (
         <ul>
             <li onClick={() => props.isMobile && props.closeMobileMenu()}>

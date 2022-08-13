@@ -21,6 +21,7 @@ Amplify.configure(awsExports);
 
 
 
+
 function App({ isPassedToWithAuthenticator, signOut, user }) {
 
   return (

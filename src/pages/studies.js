@@ -115,7 +115,8 @@ const Studies = (user) => {
         const result = await Storage.get(noteToDownload.image[0], { download: true });
         downloadBlob(result.Body, noteToDownload.image[0]);
       }
-    
+
+  
       async function onChange(e) {
         if (!e.target.files[0]) return  
         //const file = e.target.files[0];
@@ -129,7 +130,33 @@ const Studies = (user) => {
         }
         console.log("Array: ", fileArray);
         setFormData({ ...formData, image: fileArray });
-        
+
+        // This code takes the file and turns it into a blob ("fileb") so we can use dicomParser
+        const get_file_array = (file) => {
+          return new Promise((acc, err) => {
+              const reader = new FileReader();
+              reader.onload = (event) => { acc(event.target.result) };
+              reader.onerror = (err)  => { err(err) };
+              reader.readAsArrayBuffer(file);
+          });
+        }
+        const temp = await get_file_array(e.target.files[0])
+        //console.log('here we finally ve the file as a ArrayBuffer : ',temp);
+        const fileb = new Uint8Array(temp)
+
+        // Use dicom parser on the blob
+        try {
+          var dicom = require('dicom-parser');
+          var dataSet = dicom.parseDicom(fileb);
+          var studyInstanceUid = dataSet.string('x0020000d');
+          console.log(studyInstanceUid);
+        } catch (e) {
+          console.log("Caught error parsing file with dicom parser");
+          alert('Hmmm... this does not seem to be a folder with valid DICOM images.');
+          document.getElementById('fileInput').value = '';
+          return;
+        }    
+
         {/*await Storage.put(file.name, file);*/}
         //console.log("Putting ", file.name);
         // await Storage.put(file.name, file, {
@@ -151,30 +178,41 @@ const Studies = (user) => {
           <div className="App-header">
           <p/>
           <p/>
-          <h1>Upload your medical images</h1>
+          <h1>My Imaging Studies</h1>
+          Get a pre-paid envelope for my CD/DVD
+          <p/>
           <input
             onChange={e => setFormData({ ...formData, 'name': e.target.value})}
             placeholder="Name (required)"
             value={formData.name}
+            id="nameInput"
           />
           <p/>
           <input
             onChange={e => setFormData({ ...formData, 'description': e.target.value})}
             placeholder="Description (optional)"
             value={formData.description}
+            id="descriptionInput"
           />
+          <p/>
+          <button onClick={createNote}>Request Envelope</button>
+          <p/>
+          <Divider />
           {/*<input
             type="file"
             onChange={onChange}
            />*/}
           <label>
             <p/>
-            Select DICOM image directory
+            Upload directly from your computer
             <p/>
-            <input type="file" directory="" webkitdirectory="" onChange={onChange} />
+            <input type="file" directory="" webkitdirectory="" onChange={onChange} id="fileInput"/>
           </label>
+          {/*
+          //Don't use the buttom anymore to upload from a directory
           <p/>
           <button onClick={createNote}>Upload Image Series</button>
+          <p/> */}
           <p/>
           <Divider />
           <div style={{marginBottom: 30}}>
