@@ -18,7 +18,6 @@ const NavLinks = (props) => {
             </li>
             <li>
                 <Link to="." onClick={props.mySignOutFunction}>Sign Out</Link>
-                {/* eventually link back to landing page that's not wrapped withAuthenticator*/}             
             </li>
         </ul>
     );

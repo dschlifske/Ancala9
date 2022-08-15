@@ -18,10 +18,11 @@ import { Menu, MenuItem, View } from '@aws-amplify/ui-react';
 import Home from '../pages';
 import NavBar from '../NavBar/NavBar'
 import { CgMenuRound } from 'react-icons/cg'
+import classes from './studies.module.css'
 
 const Studies = (user) => {
  
-    const initialFormState = { name: '', description: '' }
+    const initialFormState = { name: '', description: '', image: '' }
 
       const [notes, setNotes] = useState([]);
       const [formData, setFormData] = useState(initialFormState);
@@ -71,10 +72,8 @@ const Studies = (user) => {
         };
        await API.graphql({ query: deleteNoteMutation, variables: { input: deleteDetails }}); */}
        const noteToDelete = notes.find(note => note.id === id);
-       console.log("Number of note(s) to delete: ", noteToDelete.image.length);
-       console.log("Note(s) to delete: ", noteToDelete.image);
-    
-    
+       //console.log("Number of note(s) to delete: ", noteToDelete.image.length);
+       //console.log("Note(s) to delete: ", noteToDelete.image);
     
        const newNotesArray = notes.filter(note => note.id !== id);
        setNotes(newNotesArray);
@@ -116,7 +115,7 @@ const Studies = (user) => {
       }
 
   
-      async function onChange(e) {
+      async function uploadFiles(e) {
         if (!e.target.files[0]) return  
         //const file = e.target.files[0];
         console.log("Files: ", e.target.files);
@@ -169,51 +168,41 @@ const Studies = (user) => {
             contentType: "file",
          });
         }
-    
-        fetchNotes();
+        
+        //createNote();
+        //fetchNotes();
       }
     
       return (
-          <div className="App-header">
+          <div className={classes.studies}>
           <p/>
           <p/>
-          <h1>My Imaging Studies</h1>
-          Get a pre-paid envelope for my CD/DVD
-          <p/>
-          <input
-            onChange={e => setFormData({ ...formData, 'name': e.target.value})}
-            placeholder="Name (required)"
-            value={formData.name}
-            id="nameInput"
-          />
-          <p/>
-          <input
-            onChange={e => setFormData({ ...formData, 'description': e.target.value})}
-            placeholder="Description (optional)"
-            value={formData.description}
-            id="descriptionInput"
-          />
-          <p/>
-          <button onClick={createNote}>Request Envelope</button>
+
+          <div>
+            <h1>Upload My Images</h1>
+            Add some notes about your images and upload
+            <p/>
+            <input
+              onChange={e => setFormData({ ...formData, 'name': e.target.value})}
+              placeholder="Name (required)"
+              value={formData.name}
+              id="nameInput"
+            />
+            <p/>
+            <input
+              onChange={e => setFormData({ ...formData, 'description': e.target.value})}
+              placeholder="Description (optional)"
+              value={formData.description}
+              id="descriptionInput"
+            />
+            <p/>
+            <input type="file" directory="" webkitdirectory="" onChange={uploadFiles} id="fileInput"/>
+            <button onClick={createNote}>Upload</button>
+          </div>
           <p/>
           <Divider />
-          {/*<input
-            type="file"
-            onChange={onChange}
-           />*/}
-          <label>
-            <p/>
-            Upload directly from your computer
-            <p/>
-            <input type="file" directory="" webkitdirectory="" onChange={onChange} id="fileInput"/>
-          </label>
-          {/*
-          //Don't use the buttom anymore to upload from a directory
           <p/>
-          <button onClick={createNote}>Upload Image Series</button>
-          <p/> */}
-          <p/>
-          <Divider />
+          <h1>My Images</h1>
           <div style={{marginBottom: 30}}>
             {
               notes.map(note => (
@@ -225,10 +214,9 @@ const Studies = (user) => {
                 note.image && <img src={note.image} style={{width: 400}} />
               }
               <button onClick={() => downloadNote(note)}>Download</button>
-    
-          </div>
-      ))
-    }
+              </div>
+            ))
+            }
           </div>
         </div>
       );

@@ -1,0 +1,39 @@
+.studies {
+    background-color: #282c34;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(10px + 2vmin);
+    color: white;
+}
+
+.studies div {
+    font-size: calc(10px + 2vmin);
+    align-items: center;
+    justify-content: center;
+}
+
+.studies div {
+    margin: 10px; /* remove all margins to fit two divs in the container */
+    display: inline-block; /* display block elements in one line */
+    align-items: center;
+    vertical-align: middle;
+    justify-content: center;
+}
+
+.studies div input {
+    align-items: center;
+    vertical-align: middle;
+    justify-content: center;
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    box-sizing: border-box;
+    border: 2px solid #ff616d;
+    background-color: #ffecf2;
+    border-radius: 4px;
+}
+  
+  
