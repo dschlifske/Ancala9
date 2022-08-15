@@ -46,7 +46,7 @@
 
     .NavBar .MobileNavigation .Hamburger {
         position: absolute;
-        left: 2%;
+        right: 2%;
         cursor: pointer;
     }
 

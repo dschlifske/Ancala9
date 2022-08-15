@@ -22,67 +22,31 @@ import classes from './studies.module.css'
 
 const Studies = (user) => {
  
-    const initialFormState = { name: '', description: '', image: '' }
-
       const [notes, setNotes] = useState([]);
-      const [formData, setFormData] = useState(initialFormState);
     
       useEffect(() => {
         fetchNotes();
       }, []);
-
    
       async function fetchNotes() {
         const apiData = await API.graphql({ query: listNotes });
         const notesFromAPI = apiData.data.listNotes.items;
         await Promise.all(notesFromAPI.map(async note => {
-          if (note.image) {
-            Storage.configure({ level: 'private' });
-            const image = await Storage.get(note.image);
-            {/*change the image to make it visible -- shouldnt matter for dicom images anyway*/}
-            {/*note.image = image;*/}
-          }
           return note;
         }))
         setNotes(apiData.data.listNotes.items);
       }
     
-      async function createNote() {
-        if (!formData.name || !formData.description) return;
-        console.log(formData.image);
-        await API.graphql({ query: createNoteMutation, variables: { input: formData } });
-        if (formData.image) {
-          Storage.configure({ level: 'private' });
-          const image = await Storage.get(formData.image);
-          console.log("before: ", formData.image);
-          {/*change the image to make it visible -- shouldnt matter for dicom images anyway*/}
-          {/*formData.image = image;*/}
-          console.log("after: ", formData.image);
-        }
-        setNotes([ ...notes, formData ]);
-        setFormData(initialFormState);
-        console.log(notes);
-        fetchNotes(); // I think this is needed to refresh the graphql records(?)
-      }
-    
       async function deleteNote({ id }) {
-        {/*const deleteDetails = {
-          id: id,
-          _version: 1
-        };
-       await API.graphql({ query: deleteNoteMutation, variables: { input: deleteDetails }}); */}
        const noteToDelete = notes.find(note => note.id === id);
-       //console.log("Number of note(s) to delete: ", noteToDelete.image.length);
-       //console.log("Note(s) to delete: ", noteToDelete.image);
     
        const newNotesArray = notes.filter(note => note.id !== id);
        setNotes(newNotesArray);
        console.log("Removing record from graphql");
        await API.graphql({ query: deleteNoteMutation, variables: { input: { id } }});
     
-       console.log("Removing file from s3");
-       //{/*if we change the image to make it visible, we can't delete it here*/}
-       //await Storage.remove(noteToDelete.image[0], { level: 'private' });
+       console.log("Removing files from s3");
+
        for (var i = 0; i < noteToDelete.image.length; i++) {
         console.log("Removing ", noteToDelete.image[i], " from s3");
         await Storage.remove(noteToDelete.image[i], { level: 'private' });
@@ -114,20 +78,21 @@ const Studies = (user) => {
         downloadBlob(result.Body, noteToDownload.image[0]);
       }
 
-  
       async function uploadFiles(e) {
         if (!e.target.files[0]) return  
-        //const file = e.target.files[0];
+
         console.log("Files: ", e.target.files);
         console.log("Number of files: ", e.target.files.length);
-        //const fileArray = [ e.target.files[0], e.target.files[1] ];
+
+        var myFormObject = { name: '', description: '', image: '' };
+
         let fileArray = [];
         for (var i = 0; i < e.target.files.length; i++) {
           console.log("adding ", e.target.files[i].name, " to array");
           fileArray.push(e.target.files[i].webkitRelativePath);
         }
         console.log("Array: ", fileArray);
-        setFormData({ ...formData, image: fileArray });
+        myFormObject.image = fileArray;
 
         // This code takes the file and turns it into a blob ("fileb") so we can use dicomParser
         const get_file_array = (file) => {
@@ -139,7 +104,6 @@ const Studies = (user) => {
           });
         }
         const temp = await get_file_array(e.target.files[0])
-        //console.log('here we finally ve the file as a ArrayBuffer : ',temp);
         const fileb = new Uint8Array(temp)
 
         // Use dicom parser on the blob
@@ -147,6 +111,8 @@ const Studies = (user) => {
           var dicom = require('dicom-parser');
           var dataSet = dicom.parseDicom(fileb);
           var studyInstanceUid = dataSet.string('x0020000d');
+          var patientName = dataSet.string('x00100010');
+          var studyDescription = dataSet.string('x00081030');
           console.log(studyInstanceUid);
         } catch (e) {
           console.log("Caught error parsing file with dicom parser");
@@ -154,13 +120,9 @@ const Studies = (user) => {
           document.getElementById('fileInput').value = '';
           return;
         }    
+        myFormObject.name = patientName;
+        myFormObject.description = studyDescription;
 
-        {/*await Storage.put(file.name, file);*/}
-        //console.log("Putting ", file.name);
-        // await Storage.put(file.name, file, {
-        //   level: "private",
-        //   contentType: "file",
-        // });
         for (var i = 0; i < e.target.files.length; i++) {
           console.log("Writing ", e.target.files[i].webkitRelativePath, " to S3");
           await Storage.put(e.target.files[i].webkitRelativePath, e.target.files[i], {
@@ -169,35 +131,20 @@ const Studies = (user) => {
          });
         }
         
-        //createNote();
-        //fetchNotes();
+        console.log('creating new graphql element...');
+        await API.graphql({ query: createNoteMutation, variables: { input: myFormObject } });
+        console.log('done.');
+
+        document.getElementById('fileInput').value = '';
+        fetchNotes();
       }
     
       return (
           <div className={classes.studies}>
-          <p/>
-          <p/>
-
           <div>
-            <h1>Upload My Images</h1>
-            Add some notes about your images and upload
-            <p/>
-            <input
-              onChange={e => setFormData({ ...formData, 'name': e.target.value})}
-              placeholder="Name (required)"
-              value={formData.name}
-              id="nameInput"
-            />
-            <p/>
-            <input
-              onChange={e => setFormData({ ...formData, 'description': e.target.value})}
-              placeholder="Description (optional)"
-              value={formData.description}
-              id="descriptionInput"
-            />
-            <p/>
-            <input type="file" directory="" webkitdirectory="" onChange={uploadFiles} id="fileInput"/>
-            <button onClick={createNote}>Upload</button>
+            <h1>Upload Images</h1>
+            <p>Select the folder called "DICOM"</p>
+            <input type="file" directory="" webkitdirectory="" onChange={uploadFiles} id="fileInput" />
           </div>
           <p/>
           <Divider />
